@@ -12,13 +12,13 @@ This extension is created using [pgrx](https://github.com/tcdi/pgrx)
 
 ### ABI
 - [ ] Decode H160/Address
-- ...
+- [ ] ...
 
 ### ERC20
 
 - [X] Transfer
 - [ ] Approval
-- ...
+- [ ] ...
 
 ## Usage
 
