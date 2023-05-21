@@ -1,0 +1,30 @@
+[package]
+name = "pg_chainutils"
+version = "0.0.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+default = ["pg15"]
+pg15 = ["pgrx/pg15", "pgrx-tests/pg15"]
+pg_test = []
+
+[dependencies]
+pgrx = "=0.8.3"
+ethers = "2.0"
+anyhow = "1.0.71"
+serde = "1.0.163"
+
+[dev-dependencies]
+pgrx-tests = "=0.8.3"
+
+[profile.dev]
+panic = "unwind"
+
+[profile.release]
+panic = "unwind"
+opt-level = 3
+lto = "fat"
+codegen-units = 1

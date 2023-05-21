@@ -1,0 +1,5 @@
+comment = 'pg_chainutils:  Created by pgrx'
+default_version = '@CARGO_VERSION@'
+module_pathname = '$libdir/pg_chainutils'
+relocatable = false
+superuser = true
