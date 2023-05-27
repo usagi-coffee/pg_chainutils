@@ -10,8 +10,7 @@ This extension is created using [pgrx](https://github.com/tcdi/pgrx)
 
 ## Utilities
 
-### ABI
-- [ ] Decode H160/Address
+- [X] H256 -> H160
 - [ ] ...
 
 ### ERC20
@@ -23,17 +22,22 @@ This extension is created using [pgrx](https://github.com/tcdi/pgrx)
 ## Usage
 
 ```sql
-CREATE EXTENSION pg_chainutils
+CREATE EXTENSION pg_chainutils;
+```
+
+```sql
+SELECT H160.from_H256("0x0000000000000000000000001111111111111111111111111111111111111111")
+-- 0x1111111111111111111111111111111111111111
 ```
 
 ### ERC20
 
 ```sql
--- Takes abi formatted topics as argument
+-- Takes abi hex encoded topics as argument
 SELECT ERC20.transfer_from('{0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0x0000000000000000000000001111111111111111111111111111111111111111},0x0000000000000000000000002222222222222222222222222222222222222222}');
 -- 0x1111111111111111111111111111111111111111
 
--- Takes abi formatted topics as argument
+-- Takes abi hex encoded topics as argument
 SELECT ERC20.transfer_to('{0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0x0000000000000000000000001111111111111111111111111111111111111111},0x0000000000000000000000002222222222222222222222222222222222222222}');
 -- 0x2222222222222222222222222222222222222222
 
