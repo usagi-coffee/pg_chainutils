@@ -33,8 +33,8 @@ mod ERC20 {
     }
 
     #[pg_extern(immutable, parallel_safe)]
-    fn transfer_value(data: &str) -> i64 {
-        U256::from_big_endian(&hex::decode(data).unwrap()[64..96]).as_u64() as i64
+    fn transfer_value(data: &str) -> pgrx::AnyNumeric {
+        pgrx::AnyNumeric::from(U256::from_big_endian(&hex::decode(data).unwrap()[64..96]).as_u128())
     }
 }
 
