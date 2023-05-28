@@ -19,6 +19,11 @@ This extension is created using [pgrx](https://github.com/tcdi/pgrx)
 - [ ] Approval
 - [ ] ...
 
+### ERC721
+
+- [X] Transfer
+- [ ] ...
+
 ## Usage
 
 ```sql

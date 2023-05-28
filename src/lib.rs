@@ -7,6 +7,9 @@ mod H160;
 #[allow(non_snake_case)]
 mod ERC20;
 
+#[allow(non_snake_case)]
+mod ERC721;
+
 #[cfg(test)]
 pub mod pg_test {
     pub fn setup(_options: Vec<&str>) {}
