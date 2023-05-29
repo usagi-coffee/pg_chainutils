@@ -68,7 +68,7 @@ SELECT Sushi.swap_type('00..');
 -- 0 (BUY) or 1 (SELL)
 
 -- Pair: BASE / QUOTE
--- Takes non-hex encoded data and returns reserve
+-- Takes non-hex encoded data and returns swap amount
 SELECT Sushi.swap_base_amount('0..');
 SELECT Sushi.swap_quote_amount('0..');
 
