@@ -24,6 +24,12 @@ This extension is created using [pgrx](https://github.com/tcdi/pgrx)
 - [X] Transfer
 - [ ] ...
 
+### Sushiswap
+
+- [X] Swap
+- [X] Sync
+- [ ] ...
+
 ## Usage
 
 ```sql
