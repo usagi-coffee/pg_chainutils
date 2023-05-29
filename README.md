@@ -60,6 +60,8 @@ SELECT ERC721.transfer_token('00000000000000000000000000000000000000000000000000
 -- 120456
 ```
 
+### Sushiswap
+
 ```sql
 -- Takes log data as argument
 SELECT Sushi.swap_type('00..');
