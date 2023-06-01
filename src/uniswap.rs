@@ -36,7 +36,7 @@ mod Uniswap {
 
     #[pg_extern(name = "swap_type", immutable, parallel_safe)]
     fn uni_swap_type(data: &str) -> i32 {
-        decode_swap(&data.as_bytes()).unwrap().action as i32
+        decode_swap(&hex::decode(data).unwrap()).unwrap().action as i32
     }
 
     #[pg_extern(name = "swap_base_amount", immutable, parallel_safe)]

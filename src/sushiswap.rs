@@ -35,7 +35,7 @@ mod Sushiswap {
 
     #[pg_extern(immutable, parallel_safe)]
     fn swap_type(data: &str) -> i32 {
-        decode_swap(&data.as_bytes()).unwrap().action as i32
+        decode_swap(&hex::decode(data).unwrap()).unwrap().action as i32
     }
 
     #[pg_extern(immutable, parallel_safe)]
