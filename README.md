@@ -47,10 +47,12 @@ SELECT H160.from_H256("0x0000000000000000000000001111111111111111111111111111111
 -- Takes abi hex encoded topics as argument
 SELECT ERC20.transfer_from('{0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0x0000000000000000000000001111111111111111111111111111111111111111,0x0000000000000000000000002222222222222222222222222222222222222222}');
 -- 0x1111111111111111111111111111111111111111
+-- Or you can just use H160.from_H256 and pass second element of topics array
 
 -- Takes abi hex encoded topics as argument
 SELECT ERC20.transfer_to('{0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0x0000000000000000000000001111111111111111111111111111111111111111,0x0000000000000000000000002222222222222222222222222222222222222222}');
 -- 0x2222222222222222222222222222222222222222
+-- Or you can just use H160.from_H256 and pass third element of topics array
 
 -- Takes non-hex encoded data and returns value
 SELECT ERC20.transfer_value('00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000001d688');
@@ -63,15 +65,15 @@ SELECT ERC721.transfer_token('00000000000000000000000000000000000000000000000000
 ### Sushiswap / Uniswap
 
 ```sql
--- Takes log data as argument
+-- Takes non-hex encoded data and returns swap type
 SELECT Sushiswap.swap_type('00..');
 SELECT Uniswap.swap_type('00..');
 -- 0 (BUY) or 1 (SELL)
 
 -- Pair: BASE / QUOTE
 -- Takes non-hex encoded data and returns swap amount
-SELECT Sushiswap.swap_base_amount('0..');
-SELECT Sushiswap.swap_quote_amount('0..');
+SELECT Sushiswap.swap_base_amount('00..');
+SELECT Sushiswap.swap_quote_amount('00..');
 
 SELECT Uniswap.swap_base_amount('00..');
 SELECT Uniswap.swap_quote_amount('00..');
@@ -80,8 +82,8 @@ SELECT Uniswap.swap_quote_amount('00..');
 SELECT Sushiswap.sync_base_reserve('00..');
 SELECT Sushiswap.sync_quote_reserve('00..');
 
-SELECT Uniswap.swap_base_amount('00..');
-SELECT Uniswap.swap_quote_amount('00..');
+SELECT Uniswap.sync_base_reserve('00..');
+SELECT Uniswap.sync_quote_reserve('00..');
 ```
 
 ## License
