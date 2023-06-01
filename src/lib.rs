@@ -11,6 +11,7 @@ mod ERC20;
 mod ERC721;
 
 mod sushiswap;
+mod uniswap;
 
 #[cfg(test)]
 pub mod pg_test {

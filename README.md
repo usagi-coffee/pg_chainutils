@@ -24,7 +24,7 @@ This extension is created using [pgrx](https://github.com/tcdi/pgrx)
 - [X] Transfer
 - [ ] ...
 
-### Sushiswap
+### AMM (Sushiswap / Uniswap)
 
 - [X] Swap
 - [X] Sync
@@ -60,21 +60,28 @@ SELECT ERC721.transfer_token('00000000000000000000000000000000000000000000000000
 -- 120456
 ```
 
-### Sushiswap
+### Sushiswap / Uniswap
 
 ```sql
 -- Takes log data as argument
-SELECT Sushi.swap_type('00..');
+SELECT Sushiswap.swap_type('00..');
+SELECT Uniswap.swap_type('00..');
 -- 0 (BUY) or 1 (SELL)
 
 -- Pair: BASE / QUOTE
 -- Takes non-hex encoded data and returns swap amount
-SELECT Sushi.swap_base_amount('0..');
-SELECT Sushi.swap_quote_amount('0..');
+SELECT Sushiswap.swap_base_amount('0..');
+SELECT Sushiswap.swap_quote_amount('0..');
+
+SELECT Uniswap.swap_base_amount('00..');
+SELECT Uniswap.swap_quote_amount('00..');
 
 -- Takes non-hex encoded data and returns reserve
-SELECT Sushi.sync_base_reserve('00..');
-SELECT Sushi.sync_quote_reserve('00..');
+SELECT Sushiswap.sync_base_reserve('00..');
+SELECT Sushiswap.sync_quote_reserve('00..');
+
+SELECT Uniswap.swap_base_amount('00..');
+SELECT Uniswap.swap_quote_amount('00..');
 ```
 
 ## License
