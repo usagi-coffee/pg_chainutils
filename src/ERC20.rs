@@ -20,7 +20,7 @@ mod ERC20 {
 
     #[pg_extern(name = "transfer_abi", immutable, parallel_safe)]
     fn erc20_transfer_abi() -> &'static str {
-        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3e"
+        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
     }
 
     #[pg_extern(name = "transfer_from", immutable, parallel_safe)]
