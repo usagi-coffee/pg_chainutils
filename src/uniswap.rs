@@ -1,6 +1,12 @@
 use pgrx::prelude::*;
 
-use num::{bigint::Sign, rational::Ratio, BigInt, BigRational, BigUint, Signed};
+use num::{
+    bigint::{Sign, ToBigInt},
+    rational::Ratio,
+    BigInt, BigRational,
+};
+
+use bigdecimal::BigDecimal;
 
 use anyhow::Result;
 
@@ -11,13 +17,13 @@ pub enum SwapAction {
 
 pub struct Swap {
     pub action: SwapAction,
-    pub base_amount: BigUint,
-    pub quote_amount: BigUint,
+    pub base_amount: BigInt,
+    pub quote_amount: BigInt,
 }
 
 pub struct Sync {
-    pub base_reserve: BigUint,
-    pub quote_reserve: BigUint,
+    pub base_reserve: BigInt,
+    pub quote_reserve: BigInt,
 }
 
 #[pg_schema]
@@ -33,6 +39,7 @@ mod Uniswap {
 
     use super::decode_swap;
     use super::decode_sync;
+    use super::sync_price;
 
     #[pg_extern(name = "swap_type", immutable, parallel_safe)]
     fn uni_swap_type(data: &str) -> i32 {
@@ -78,6 +85,15 @@ mod Uniswap {
                 .as_str(),
         )?)
     }
+
+    #[pg_extern(name = "sync_price", immutable, parallel_safe)]
+    fn uni_sync_price(data: &str, decimals: i64) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
+        Ok(pgrx::AnyNumeric::from_str(
+            sync_price(&hex::decode(data).unwrap(), decimals)
+                .to_string()
+                .as_str(),
+        )?)
+    }
 }
 
 #[allow(dead_code)]
@@ -92,10 +108,8 @@ fn decode_swap(data: &[u8]) -> Result<Swap> {
 
     Ok(Swap {
         action,
-        // SAFETY: abs ensures number is positive
-        base_amount: unsafe { amount_base.abs().to_biguint().unwrap_unchecked() },
-        // SAFETY: abs ensures number is positive
-        quote_amount: unsafe { amount_quote.abs().to_biguint().unwrap_unchecked() },
+        base_amount: amount_base,
+        quote_amount: amount_quote,
     })
 }
 
@@ -106,16 +120,25 @@ fn decode_sync(bytes: &[u8]) -> Result<Sync> {
     let liquidity = BigInt::from_bytes_be(Sign::Plus, &bytes[96..128]);
     let fixed_liquidity = BigRational::from(liquidity);
 
-    let sqrt = BigUint::from_bytes_be(&bytes[64..96]);
-    let sqrt_p = BigRational::new(sqrt.into(), 1.into()) / &x96;
+    let sqrt = BigInt::from_bytes_be(Sign::Plus, &bytes[64..96]);
+    let sqrt_p = BigRational::from(sqrt.clone()) / &x96;
 
-    let reserve_base = &fixed_liquidity * &sqrt_p;
-    let reserve_quote = &fixed_liquidity / &sqrt_p;
+    let base_reserve = &fixed_liquidity * &sqrt_p;
+    let quote_reserve = &fixed_liquidity / &sqrt_p;
 
     Ok(Sync {
-        base_reserve: reserve_base.to_integer().to_biguint().unwrap(),
-        quote_reserve: reserve_quote.to_integer().to_biguint().unwrap(),
+        base_reserve: base_reserve.to_integer().to_bigint().unwrap(),
+        quote_reserve: quote_reserve.to_integer().to_bigint().unwrap(),
     })
+}
+
+fn sync_price(bytes: &[u8], decimals: i64) -> BigDecimal {
+    let sqrt = BigInt::from_bytes_be(Sign::Plus, &bytes[64..96]);
+
+    let p2 = BigDecimal::new(sqrt.pow(2), decimals);
+    let exp = BigDecimal::new(BigInt::from(2).pow(192), decimals);
+
+    return (p2 / exp).round(decimals);
 }
 
 #[cfg(any(test, feature = "pg_test"))]
@@ -178,7 +201,7 @@ mod tests {
     #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn uni_test_sync() -> Result<()> {
-        let data = "0000000000000000000000000000000000000000000069e3a94cbdc95782d980fffffffffffffffffffffffffffffffffffffffffffffffffca2be462fef64520000000000000000000000000000000000000000002dd9e533e8a406c1663add00000000000000000000000000000000000000000000ac695d7b1db89e7cd0ddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc865";
+        let data = "00000000000000000000000000000000000000000000017c7f011ed3d569f235fffffffffffffffffffffffffffffffffffffffffffffffffff464d21969b86f0000000000000000000000000000000000000000002cef82ba9345431228373600000000000000000000000000000000000000000000ac695d7b1db89e7cd0ddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc6d2";
 
         let reserve_base = Spi::get_one_with_args::<pgrx::AnyNumeric>(
             "SELECT Uniswap.sync_base_reserve($1);",
@@ -198,14 +221,28 @@ mod tests {
         )
         .unwrap();
 
+        let price = Spi::get_one_with_args::<pgrx::AnyNumeric>(
+            "SELECT Uniswap.sync_price($1, 18);",
+            vec![(
+                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
+                data.to_string().into_datum(),
+            )],
+        )
+        .unwrap();
+
         assert_eq!(
             reserve_base,
-            Some(pgrx::AnyNumeric::from_str("451311132420498713580")?)
+            Some(pgrx::AnyNumeric::from_str("442299260600729518413")?)
         );
 
         assert_eq!(
             reserve_quote,
-            Some(pgrx::AnyNumeric::from_str("1468845801625245179167532601")?)
+            Some(pgrx::AnyNumeric::from_str("1498773615814385624748265981")?)
+        );
+
+        assert_eq!(
+            price,
+            Some(pgrx::AnyNumeric::from_str("0.000000470133292265")?)
         );
 
         Ok(())

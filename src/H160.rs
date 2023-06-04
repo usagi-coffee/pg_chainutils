@@ -21,17 +21,25 @@ mod H160 {
 #[cfg(any(test, feature = "pg_test"))]
 #[pg_schema]
 mod tests {
-    use anyhow::Result;
-    use ethers::types::{H160, H256};
+    use pgrx::prelude::*;
 
-    #[test]
-    fn test_decode() -> Result<()> {
+    use anyhow::Result;
+
+    #[cfg(not(feature = "no-schema-generation"))]
+    #[pg_test]
+    fn h160_test_decode() -> Result<()> {
         let address = "0x0000000000000000000000001111111111111111111111111111111111111111";
 
-        assert_eq!(
-            format!("{:#x}", H160::from(address.parse::<H256>().unwrap())),
-            "0x1111111111111111111111111111111111111111",
-        );
+        let decoded = Spi::get_one_with_args::<&str>(
+            "SELECT H160.from_h256($1);",
+            vec![(
+                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
+                address.to_string().into_datum(),
+            )],
+        )
+        .unwrap();
+
+        assert_eq!(decoded, Some("0x1111111111111111111111111111111111111111"));
 
         Ok(())
     }

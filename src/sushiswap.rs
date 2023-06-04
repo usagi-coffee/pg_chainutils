@@ -1,6 +1,7 @@
 use pgrx::prelude::*;
 
-use num::BigUint;
+use bigdecimal::BigDecimal;
+use num::{bigint::Sign, BigInt};
 
 use anyhow::Result;
 
@@ -11,13 +12,13 @@ pub enum SwapAction {
 
 pub struct Swap {
     pub action: SwapAction,
-    pub base_amount: BigUint,
-    pub quote_amount: BigUint,
+    pub base_amount: BigInt,
+    pub quote_amount: BigInt,
 }
 
 pub struct Sync {
-    pub base_reserve: BigUint,
-    pub quote_reserve: BigUint,
+    pub base_reserve: BigInt,
+    pub quote_reserve: BigInt,
 }
 
 #[pg_schema]
@@ -32,14 +33,15 @@ mod Sushiswap {
 
     use super::decode_swap;
     use super::decode_sync;
+    use super::sync_price;
 
-    #[pg_extern(immutable, parallel_safe)]
-    fn swap_type(data: &str) -> i32 {
+    #[pg_extern(name = "swap_type", immutable, parallel_safe)]
+    fn sushi_swap_type(data: &str) -> i32 {
         decode_swap(&hex::decode(data).unwrap()).unwrap().action as i32
     }
 
-    #[pg_extern(immutable, parallel_safe)]
-    fn swap_base_amount(data: &str) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
+    #[pg_extern(name = "swap_base_amount", immutable, parallel_safe)]
+    fn sushi_swap_base_amount(data: &str) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
         Ok(pgrx::AnyNumeric::from_str(
             decode_swap(&hex::decode(data).unwrap())
                 .unwrap()
@@ -49,8 +51,8 @@ mod Sushiswap {
         )?)
     }
 
-    #[pg_extern(immutable, parallel_safe)]
-    fn swap_quote_amount(data: &str) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
+    #[pg_extern(name = "swap_quote_amount", immutable, parallel_safe)]
+    fn sushi_swap_quote_amount(data: &str) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
         Ok(pgrx::AnyNumeric::from_str(
             decode_swap(&hex::decode(data).unwrap())
                 .unwrap()
@@ -60,8 +62,8 @@ mod Sushiswap {
         )?)
     }
 
-    #[pg_extern(immutable, parallel_safe)]
-    fn sync_base_reserve(data: &str) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
+    #[pg_extern(name = "sync_base_reserve", immutable, parallel_safe)]
+    fn sushi_sync_base_reserve(data: &str) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
         Ok(pgrx::AnyNumeric::from_str(
             decode_sync(&hex::decode(data).unwrap())
                 .unwrap()
@@ -71,8 +73,8 @@ mod Sushiswap {
         )?)
     }
 
-    #[pg_extern(immutable, parallel_safe)]
-    fn sync_quote_reserve(data: &str) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
+    #[pg_extern(name = "sync_quote_reserve", immutable, parallel_safe)]
+    fn sushi_sync_quote_reserve(data: &str) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
         Ok(pgrx::AnyNumeric::from_str(
             decode_sync(&hex::decode(data).unwrap())
                 .unwrap()
@@ -81,23 +83,32 @@ mod Sushiswap {
                 .as_str(),
         )?)
     }
+
+    #[pg_extern(name = "sync_price", immutable, parallel_safe)]
+    fn sushi_sync_price(data: &str, decimals: i64) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
+        Ok(pgrx::AnyNumeric::from_str(
+            sync_price(&hex::decode(data).unwrap(), decimals)
+                .to_string()
+                .as_str(),
+        )?)
+    }
 }
 
 #[allow(dead_code)]
 fn decode_swap(data: &[u8]) -> Result<Swap> {
-    let amount_0_in = BigUint::from_bytes_be(&data[32..64]);
-    let amount_1_in = BigUint::from_bytes_be(&data[64..96]);
+    let amount_0_in = BigInt::from_bytes_be(Sign::Plus, &data[32..64]);
+    let amount_1_in = BigInt::from_bytes_be(Sign::Plus, &data[64..96]);
 
-    let amount_0_out = BigUint::from_bytes_be(&data[96..128]);
-    let amount_1_out = BigUint::from_bytes_be(&data[128..160]);
+    let amount_0_out = BigInt::from_bytes_be(Sign::Plus, &data[96..128]);
+    let amount_1_out = BigInt::from_bytes_be(Sign::Plus, &data[128..160]);
 
-    let action = match amount_0_in.gt(&BigUint::from(0u32)) {
+    let action = match amount_0_in.gt(&BigInt::from(0u32)) {
         true => SwapAction::SELL,
         false => SwapAction::BUY,
     };
 
-    let max_0 = BigUint::max(amount_0_in, amount_0_out);
-    let max_1 = BigUint::max(amount_1_in, amount_1_out);
+    let max_0 = BigInt::max(amount_0_in, amount_0_out);
+    let max_1 = BigInt::max(amount_1_in, amount_1_out);
 
     Ok(Swap {
         action,
@@ -108,13 +119,23 @@ fn decode_swap(data: &[u8]) -> Result<Swap> {
 
 #[allow(dead_code)]
 fn decode_sync(data: &[u8]) -> Result<Sync> {
-    let reserve_0 = BigUint::from_bytes_be(&data[0..32]);
-    let reserve_1 = BigUint::from_bytes_be(&data[32..64]);
+    let base_reserve = BigInt::from_bytes_be(Sign::Plus, &data[0..32]);
+    let quote_reserve = BigInt::from_bytes_be(Sign::Plus, &data[32..64]);
 
     Ok(Sync {
-        base_reserve: reserve_0,
-        quote_reserve: reserve_1,
+        base_reserve,
+        quote_reserve,
     })
+}
+
+fn sync_price(bytes: &[u8], decimals: i64) -> BigDecimal {
+    let base_reserve = BigInt::from_bytes_be(Sign::Plus, &bytes[0..32]);
+    let quote_reserve = BigInt::from_bytes_be(Sign::Plus, &bytes[32..64]);
+
+    let decimal_base_reserve = BigDecimal::new(base_reserve, decimals);
+    let decimal_quote_reserve = BigDecimal::new(quote_reserve, decimals);
+
+    return (decimal_quote_reserve / decimal_base_reserve).round(decimals);
 }
 
 #[cfg(any(test, feature = "pg_test"))]
@@ -122,11 +143,15 @@ fn decode_sync(data: &[u8]) -> Result<Sync> {
 mod tests {
     use pgrx::prelude::*;
 
+    use std::str::FromStr;
+
+    use anyhow::Result;
+
     use super::SwapAction;
 
     #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
-    fn sushi_test_swap() {
+    fn sushi_test_swap() -> Result<()> {
         let data = "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001cdda4213bbfc040000000000000000000000000000000000000000000007bdf58e3f02e2408f120000000000000000000000000000000000000000000000000000000000000000";
 
         let action = Spi::get_one_with_args::<i32>(
@@ -159,19 +184,21 @@ mod tests {
 
         assert_eq!(
             base_amount,
-            Some(pgrx::AnyNumeric::from(36560694159286225374994 as u128))
+            Some(pgrx::AnyNumeric::from_str("36560694159286225374994")?)
         );
 
         assert_eq!(
             quote_amount,
-            Some(pgrx::AnyNumeric::from(129999941597395972 as u128))
+            Some(pgrx::AnyNumeric::from_str("129999941597395972")?)
         );
+
+        Ok(())
     }
 
     #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
-    fn sushi_test_sync() {
-        let data = "00000000000000000000000000000000000000000000000001cdda4213bbfc040000000000000000000000000000000000000000000007bdf58e3f02e2408f12";
+    fn sushi_test_sync() -> Result<()> {
+        let data = "0000000000000000000000000000000000000000001821dd61f33081ef684d06000000000000000000000000000000000000000000000000e2d4a5e9e3376fa0";
 
         let reserve_base = Spi::get_one_with_args::<pgrx::AnyNumeric>(
             "SELECT Sushiswap.sync_base_reserve($1);",
@@ -193,12 +220,28 @@ mod tests {
 
         assert_eq!(
             reserve_base,
-            Some(pgrx::AnyNumeric::from(129999941597395972 as u128))
+            Some(pgrx::AnyNumeric::from_str("29174141553164463941111046")?)
         );
 
         assert_eq!(
             reserve_quote,
-            Some(pgrx::AnyNumeric::from(36560694159286225374994 as u128))
+            Some(pgrx::AnyNumeric::from_str("16344871371592396704")?)
         );
+
+        let price = Spi::get_one_with_args::<pgrx::AnyNumeric>(
+            "SELECT Sushiswap.sync_price($1, 18);",
+            vec![(
+                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
+                data.to_string().into_datum(),
+            )],
+        )
+        .unwrap();
+
+        assert_eq!(
+            price,
+            Some(pgrx::AnyNumeric::from_str("0.000000560252007477")?)
+        );
+
+        Ok(())
     }
 }
