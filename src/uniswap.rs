@@ -41,6 +41,12 @@ mod Uniswap {
     use super::decode_sync;
     use super::sync_price;
 
+
+    #[pg_extern(name = "swap_abi", immutable, parallel_safe)]
+    fn uni_swap_abi() -> &'static str {
+        "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67"
+    }
+
     #[pg_extern(name = "swap_type", immutable, parallel_safe)]
     fn uni_swap_type(data: &str) -> i32 {
         decode_swap(&hex::decode(data).unwrap()).unwrap().action as i32

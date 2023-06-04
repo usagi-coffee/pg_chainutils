@@ -44,6 +44,10 @@ SELECT H160.from_H256("0x0000000000000000000000001111111111111111111111111111111
 ### ERC20 / ERC721
 
 ```sql
+-- Get abi encoded event hashes
+SELECT ERC20.transfer_abi();
+-- 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3e
+
 -- Takes abi hex encoded topics as argument
 SELECT ERC20.transfer_from('{0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0x0000000000000000000000001111111111111111111111111111111111111111,0x0000000000000000000000002222222222222222222222222222222222222222}');
 -- 0x1111111111111111111111111111111111111111
@@ -65,6 +69,16 @@ SELECT ERC721.transfer_token('00000000000000000000000000000000000000000000000000
 ### Sushiswap / Uniswap
 
 ```sql
+-- Get abi encoded event hashes
+SELECT Sushiswap.swap_abi();
+-- 0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822
+
+SELECT Sushiswap.sync_abi();
+-- 0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1
+
+SELECT Uniswap.swap_abi();
+-- 0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67
+
 -- Takes non-hex encoded data and returns swap type
 SELECT Sushiswap.swap_type('00..');
 SELECT Uniswap.swap_type('00..');
