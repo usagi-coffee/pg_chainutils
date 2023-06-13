@@ -41,7 +41,6 @@ mod Uniswap {
     use super::decode_sync;
     use super::sync_price;
 
-
     #[pg_extern(name = "swap_abi", immutable, parallel_safe)]
     fn uni_swap_abi() -> &'static str {
         "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67"
@@ -54,7 +53,7 @@ mod Uniswap {
 
     #[pg_extern(name = "swap_base_amount", immutable, parallel_safe)]
     fn uni_swap_base_amount(data: &str) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
-        let amount = BigInt::from_signed_bytes_be(&hex::decode(data).unwrap()[0..32]);
+        let amount = BigInt::from_signed_bytes_be(&hex::decode(data).unwrap()[64..96]);
 
         Ok(pgrx::AnyNumeric::from_str(
             amount.abs().to_string().as_str(),
@@ -63,7 +62,7 @@ mod Uniswap {
 
     #[pg_extern(name = "swap_quote_amount", immutable, parallel_safe)]
     fn uni_swap_quote_amount(data: &str) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
-        let amount = BigInt::from_signed_bytes_be(&hex::decode(data).unwrap()[32..64]);
+        let amount = BigInt::from_signed_bytes_be(&hex::decode(data).unwrap()[96..128]);
 
         Ok(pgrx::AnyNumeric::from_str(
             amount.abs().to_string().as_str(),
@@ -104,8 +103,8 @@ mod Uniswap {
 
 #[allow(dead_code)]
 fn decode_swap(data: &[u8]) -> Result<Swap> {
-    let amount_base = BigInt::from_signed_bytes_be(&data[0..32]);
-    let amount_quote = BigInt::from_signed_bytes_be(&data[32..64]);
+    let amount_base = BigInt::from_signed_bytes_be(&data[64..96]);
+    let amount_quote = BigInt::from_signed_bytes_be(&data[96..128]);
 
     let action = match amount_base.gt(&BigInt::from(0)) {
         true => SwapAction::SELL,
@@ -123,11 +122,11 @@ fn decode_swap(data: &[u8]) -> Result<Swap> {
 fn decode_sync(bytes: &[u8]) -> Result<Sync> {
     let x96: Ratio<BigInt> = BigRational::from(BigInt::from(10).pow(29));
 
-    let liquidity = BigInt::from_bytes_be(Sign::Plus, &bytes[96..128]);
-    let fixed_liquidity = BigRational::from(liquidity);
-
-    let sqrt = BigInt::from_bytes_be(Sign::Plus, &bytes[64..96]);
+    let sqrt = BigInt::from_bytes_be(Sign::Plus, &bytes[128..160]);
     let sqrt_p = BigRational::from(sqrt.clone()) / &x96;
+
+    let liquidity = BigInt::from_bytes_be(Sign::Plus, &bytes[160..192]);
+    let fixed_liquidity = BigRational::from(liquidity);
 
     let base_reserve = &fixed_liquidity * &sqrt_p;
     let quote_reserve = &fixed_liquidity / &sqrt_p;
@@ -139,7 +138,7 @@ fn decode_sync(bytes: &[u8]) -> Result<Sync> {
 }
 
 fn sync_price(bytes: &[u8], decimals: i64) -> BigDecimal {
-    let sqrt = BigInt::from_bytes_be(Sign::Plus, &bytes[64..96]);
+    let sqrt = BigInt::from_bytes_be(Sign::Plus, &bytes[128..160]);
 
     let p2 = BigDecimal::new(sqrt.pow(2), decimals);
     let exp = BigDecimal::new(BigInt::from(2).pow(192), decimals);
@@ -161,7 +160,7 @@ mod tests {
     #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn uni_test_swap() -> Result<()> {
-        let data = "0000000000000000000000000000000000000000000069e3a94cbdc95782d980fffffffffffffffffffffffffffffffffffffffffffffffffca2be462fef64520000000000000000000000000000000000000000002dd9e533e8a406c1663add00000000000000000000000000000000000000000000ac695d7b1db89e7cd0ddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc865";
+        let data = "000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000069e3a94cbdc95782d980fffffffffffffffffffffffffffffffffffffffffffffffffca2be462fef64520000000000000000000000000000000000000000002dd9e533e8a406c1663add00000000000000000000000000000000000000000000ac695d7b1db89e7cd0ddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc865";
 
         let action = Spi::get_one_with_args::<i32>(
             "SELECT Uniswap.swap_type($1);",
@@ -207,7 +206,7 @@ mod tests {
     #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn uni_test_sync() -> Result<()> {
-        let data = "00000000000000000000000000000000000000000000017c7f011ed3d569f235fffffffffffffffffffffffffffffffffffffffffffffffffff464d21969b86f0000000000000000000000000000000000000000002cef82ba9345431228373600000000000000000000000000000000000000000000ac695d7b1db89e7cd0ddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc6d2";
+        let data = "000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000017c7f011ed3d569f235fffffffffffffffffffffffffffffffffffffffffffffffffff464d21969b86f0000000000000000000000000000000000000000002cef82ba9345431228373600000000000000000000000000000000000000000000ac695d7b1db89e7cd0ddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc6d2";
 
         let reserve_base = Spi::get_one_with_args::<pgrx::AnyNumeric>(
             "SELECT Uniswap.sync_base_reserve($1);",
