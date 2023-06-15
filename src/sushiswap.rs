@@ -129,8 +129,8 @@ fn decode_swap(data: &[u8]) -> Result<Swap> {
 
 #[allow(dead_code)]
 fn decode_sync(data: &[u8]) -> Result<Sync> {
-    let base_reserve = BigInt::from_bytes_be(Sign::Plus, &data[0..32]);
-    let quote_reserve = BigInt::from_bytes_be(Sign::Plus, &data[32..64]);
+    let base_reserve = BigInt::from_bytes_be(Sign::Plus, &data[64..96]);
+    let quote_reserve = BigInt::from_bytes_be(Sign::Plus, &data[96..128]);
 
     Ok(Sync {
         base_reserve,
@@ -139,8 +139,8 @@ fn decode_sync(data: &[u8]) -> Result<Sync> {
 }
 
 fn sync_price(bytes: &[u8], decimals: i64) -> BigDecimal {
-    let base_reserve = BigInt::from_bytes_be(Sign::Plus, &bytes[0..32]);
-    let quote_reserve = BigInt::from_bytes_be(Sign::Plus, &bytes[32..64]);
+    let base_reserve = BigInt::from_bytes_be(Sign::Plus, &bytes[64..96]);
+    let quote_reserve = BigInt::from_bytes_be(Sign::Plus, &bytes[96..128]);
 
     let decimal_base_reserve = BigDecimal::new(base_reserve, decimals);
     let decimal_quote_reserve = BigDecimal::new(quote_reserve, decimals);
@@ -208,7 +208,7 @@ mod tests {
     #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn sushi_test_sync() -> Result<()> {
-        let data = "0000000000000000000000000000000000000000001821dd61f33081ef684d06000000000000000000000000000000000000000000000000e2d4a5e9e3376fa0";
+        let data = "000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000030a017596c201728ecfb31300000000000000000000000000000000000000000000009a2946f7338c7c7108";
 
         let reserve_base = Spi::get_one_with_args::<pgrx::AnyNumeric>(
             "SELECT Sushiswap.sync_base_reserve($1);",
@@ -230,12 +230,12 @@ mod tests {
 
         assert_eq!(
             reserve_base,
-            Some(pgrx::AnyNumeric::from_str("29174141553164463941111046")?)
+            Some(pgrx::AnyNumeric::from_str("940551179158967834289091347")?)
         );
 
         assert_eq!(
             reserve_quote,
-            Some(pgrx::AnyNumeric::from_str("16344871371592396704")?)
+            Some(pgrx::AnyNumeric::from_str("2843772923755968098568")?)
         );
 
         let price = Spi::get_one_with_args::<pgrx::AnyNumeric>(
@@ -249,7 +249,7 @@ mod tests {
 
         assert_eq!(
             price,
-            Some(pgrx::AnyNumeric::from_str("0.000000560252007477")?)
+            Some(pgrx::AnyNumeric::from_str("0.000003023517472275")?)
         );
 
         Ok(())
