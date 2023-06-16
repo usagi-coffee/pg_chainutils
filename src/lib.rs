@@ -2,6 +2,9 @@ use pgrx::prelude::*;
 pgrx::pg_module_magic!();
 
 #[allow(non_snake_case)]
+mod H256;
+
+#[allow(non_snake_case)]
 mod H160;
 
 #[allow(non_snake_case)]
