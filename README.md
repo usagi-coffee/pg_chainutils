@@ -11,6 +11,7 @@ This extension is created using [pgrx](https://github.com/tcdi/pgrx)
 ## Utilities
 
 - [X] H256 -> H160
+- [X] Event -> H256
 - [ ] ...
 
 ### ERC20
@@ -41,7 +42,7 @@ SELECT H160.from_H256("0x0000000000000000000000001111111111111111111111111111111
 -- 0x1111111111111111111111111111111111111111
 
 SELECT H256.from_event("Sync(uint112,uint112)");
--- 0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1"
+-- 0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1
 ```
 
 ### ERC20 / ERC721
