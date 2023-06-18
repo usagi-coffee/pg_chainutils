@@ -92,9 +92,13 @@ mod Uniswap {
     }
 
     #[pg_extern(name = "sync_price", immutable, parallel_safe)]
-    fn uni_sync_price(data: &str, decimals: i64) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
+    fn uni_sync_price(
+        data: &str,
+        base_decimals: i64,
+        quote_decimals: i64,
+    ) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
         Ok(pgrx::AnyNumeric::from_str(
-            sync_price(&hex::decode(data).unwrap(), decimals)
+            sync_price(&hex::decode(data).unwrap(), base_decimals, quote_decimals)
                 .to_string()
                 .as_str(),
         )?)
@@ -137,13 +141,25 @@ fn decode_sync(bytes: &[u8]) -> Result<Sync> {
     })
 }
 
-fn sync_price(bytes: &[u8], decimals: i64) -> BigDecimal {
+fn sync_price(bytes: &[u8], base_decimals: i64, quote_decimals: i64) -> BigDecimal {
     let sqrt = BigInt::from_bytes_be(Sign::Plus, &bytes[128..160]);
 
-    let p2 = BigDecimal::new(sqrt.pow(2), decimals);
-    let exp = BigDecimal::new(BigInt::from(2).pow(192), decimals);
+    let p2 = BigDecimal::new(sqrt.pow(2), quote_decimals);
+    let exp = BigDecimal::new(BigInt::from(2).pow(192), quote_decimals);
 
-    return (p2 / exp).round(decimals);
+    let price_ratio = p2 / exp;
+
+    let decimals_difference = base_decimals - quote_decimals;
+
+    if decimals_difference > 0 {
+        let adjustment = BigDecimal::new(BigInt::from(10).pow(decimals_difference as u32), 0);
+        return (price_ratio * adjustment).round(quote_decimals);
+    } else if decimals_difference < 0 {
+        let adjustment = BigDecimal::new(BigInt::from(10).pow(decimals_difference.abs() as u32), 0);
+        return (price_ratio / adjustment).round(quote_decimals);
+    }
+
+    price_ratio.round(quote_decimals)
 }
 
 #[cfg(any(test, feature = "pg_test"))]
@@ -227,7 +243,7 @@ mod tests {
         .unwrap();
 
         let price = Spi::get_one_with_args::<pgrx::AnyNumeric>(
-            "SELECT Uniswap.sync_price($1, 18);",
+            "SELECT Uniswap.sync_price($1, 18, 18);",
             vec![(
                 PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
                 data.to_string().into_datum(),
@@ -249,6 +265,25 @@ mod tests {
             price,
             Some(pgrx::AnyNumeric::from_str("0.000000470133292265")?)
         );
+
+        Ok(())
+    }
+
+    #[cfg(not(feature = "no-schema-generation"))]
+    #[pg_test]
+    fn uni_test_sync_diff_decimals() -> Result<()> {
+        let data = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffa99a52af25fb226800000000000000000000000000000000000000000000000000000002830ac9a200000000000000000000000000000000000000000002ba3e80dffbea705b06590000000000000000000000000000000000000000000000008220d5a03bc02470fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffcebea";
+
+        let price = Spi::get_one_with_args::<pgrx::AnyNumeric>(
+            "SELECT Uniswap.sync_price($1, 18, 6);",
+            vec![(
+                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
+                data.to_string().into_datum(),
+            )],
+        )
+        .unwrap();
+
+        assert_eq!(price, Some(pgrx::AnyNumeric::from_str("1732.107430")?));
 
         Ok(())
     }

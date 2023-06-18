@@ -103,12 +103,12 @@ SELECT Sushiswap.sync_quote_reserve('00..');
 SELECT Uniswap.sync_base_reserve('00..');
 SELECT Uniswap.sync_quote_reserve('00..');
 
--- Takes non-hex encoded data and decimals then returns price
-SELECT Sushiswap.sync_price('00..', 18);
+-- Takes non-hex encoded data and base decimals / quote decimals, returns price
+SELECT Sushiswap.sync_price('00..', 18, 18);
 
--- Takes non-hex encoded data of swap and decimals returns price
+-- Takes non-hex encoded data of swap and base/quote decimals, returns price
 -- Uniswap does not have sync event but we can get the same result using swap event
-SELECT Uniswap.sync_price('00..', 18);
+SELECT Uniswap.sync_price('00..', 18, 18);
 ```
 
 ## License

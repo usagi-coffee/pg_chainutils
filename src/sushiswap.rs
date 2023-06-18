@@ -95,9 +95,13 @@ mod Sushiswap {
     }
 
     #[pg_extern(name = "sync_price", immutable, parallel_safe)]
-    fn sushi_sync_price(data: &str, decimals: i64) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
+    fn sushi_sync_price(
+        data: &str,
+        base_decimals: i64,
+        quote_decimals: i64,
+    ) -> Result<pgrx::AnyNumeric, Box<dyn Error>> {
         Ok(pgrx::AnyNumeric::from_str(
-            sync_price(&hex::decode(data).unwrap(), decimals)
+            sync_price(&hex::decode(data).unwrap(), base_decimals, quote_decimals)
                 .to_string()
                 .as_str(),
         )?)
@@ -138,14 +142,14 @@ fn decode_sync(data: &[u8]) -> Result<Sync> {
     })
 }
 
-fn sync_price(bytes: &[u8], decimals: i64) -> BigDecimal {
+fn sync_price(bytes: &[u8], base_decimals: i64, quote_decimals: i64) -> BigDecimal {
     let base_reserve = BigInt::from_bytes_be(Sign::Plus, &bytes[64..96]);
     let quote_reserve = BigInt::from_bytes_be(Sign::Plus, &bytes[96..128]);
 
-    let decimal_base_reserve = BigDecimal::new(base_reserve, decimals);
-    let decimal_quote_reserve = BigDecimal::new(quote_reserve, decimals);
+    let decimal_base_reserve = BigDecimal::new(base_reserve, base_decimals);
+    let decimal_quote_reserve = BigDecimal::new(quote_reserve, quote_decimals);
 
-    return (decimal_quote_reserve / decimal_base_reserve).round(decimals);
+    return (decimal_quote_reserve / decimal_base_reserve).round(quote_decimals);
 }
 
 #[cfg(any(test, feature = "pg_test"))]
@@ -239,7 +243,7 @@ mod tests {
         );
 
         let price = Spi::get_one_with_args::<pgrx::AnyNumeric>(
-            "SELECT Sushiswap.sync_price($1, 18);",
+            "SELECT Sushiswap.sync_price($1, 18, 18);",
             vec![(
                 PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
                 data.to_string().into_datum(),
