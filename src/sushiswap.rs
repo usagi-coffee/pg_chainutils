@@ -110,11 +110,11 @@ mod Sushiswap {
 
 #[allow(dead_code)]
 fn decode_swap(data: &[u8]) -> Result<Swap> {
-    let amount_0_in = BigInt::from_bytes_be(Sign::Plus, &data[32..64]);
-    let amount_1_in = BigInt::from_bytes_be(Sign::Plus, &data[64..96]);
+    let amount_0_in = BigInt::from_bytes_be(Sign::Plus, &data[64..96]);
+    let amount_1_in = BigInt::from_bytes_be(Sign::Plus, &data[96..128]);
 
-    let amount_0_out = BigInt::from_bytes_be(Sign::Plus, &data[96..128]);
-    let amount_1_out = BigInt::from_bytes_be(Sign::Plus, &data[128..160]);
+    let amount_0_out = BigInt::from_bytes_be(Sign::Plus, &data[128..160]);
+    let amount_1_out = BigInt::from_bytes_be(Sign::Plus, &data[160..192]);
 
     let action = match amount_0_in.gt(&BigInt::from(0u32)) {
         true => SwapAction::SELL,
@@ -166,7 +166,7 @@ mod tests {
     #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn sushi_test_swap() -> Result<()> {
-        let data = "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001cdda4213bbfc040000000000000000000000000000000000000000000007bdf58e3f02e2408f120000000000000000000000000000000000000000000000000000000000000000";
+        let data = "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000aa87bee5380000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006c6363e4d3aa68afbe";
 
         let action = Spi::get_one_with_args::<i32>(
             "SELECT Sushiswap.swap_type($1);",
@@ -198,12 +198,12 @@ mod tests {
 
         assert_eq!(
             base_amount,
-            Some(pgrx::AnyNumeric::from_str("36560694159286225374994")?)
+            Some(pgrx::AnyNumeric::from_str("1999410179390829014974")?)
         );
 
         assert_eq!(
             quote_amount,
-            Some(pgrx::AnyNumeric::from_str("129999941597395972")?)
+            Some(pgrx::AnyNumeric::from_str("3000000000000000")?)
         );
 
         Ok(())
