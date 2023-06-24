@@ -126,8 +126,8 @@ fn decode_swap(data: &[u8]) -> Result<Swap> {
 
     Ok(Swap {
         action,
-        base_amount: max_1,
-        quote_amount: max_0,
+        base_amount: max_0,
+        quote_amount: max_1,
     })
 }
 
@@ -198,12 +198,12 @@ mod tests {
 
         assert_eq!(
             base_amount,
-            Some(pgrx::AnyNumeric::from_str("1999410179390829014974")?)
+            Some(pgrx::AnyNumeric::from_str("3000000000000000")?)
         );
 
         assert_eq!(
             quote_amount,
-            Some(pgrx::AnyNumeric::from_str("3000000000000000")?)
+            Some(pgrx::AnyNumeric::from_str("1999410179390829014974")?)
         );
 
         Ok(())
