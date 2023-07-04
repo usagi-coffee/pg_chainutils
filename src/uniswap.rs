@@ -132,8 +132,8 @@ fn decode_sync(bytes: &[u8]) -> Result<Sync> {
     let liquidity = BigInt::from_bytes_be(Sign::Plus, &bytes[160..192]);
     let fixed_liquidity = BigRational::from(liquidity);
 
-    let base_reserve = &fixed_liquidity * &sqrt_p;
-    let quote_reserve = &fixed_liquidity / &sqrt_p;
+    let base_reserve = &fixed_liquidity / &sqrt_p;
+    let quote_reserve = &fixed_liquidity * &sqrt_p;
 
     Ok(Sync {
         base_reserve: base_reserve.to_integer().to_bigint().unwrap(),
@@ -222,7 +222,7 @@ mod tests {
     #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn uni_test_sync() -> Result<()> {
-        let data = "000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000017c7f011ed3d569f235fffffffffffffffffffffffffffffffffffffffffffffffffff464d21969b86f0000000000000000000000000000000000000000002cef82ba9345431228373600000000000000000000000000000000000000000000ac695d7b1db89e7cd0ddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc6d2";
+        let data = "0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000058418f10da628473affffffffffffffffffffffffffffffffffffffffffffffffffffd722236f32722e0000000000000000000000000000000000000000002bc4f31f2528f3970405f300000000000000000000000000000000000000000000ac695d7b1db89e7cd0ddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc4c4";
 
         let reserve_base = Spi::get_one_with_args::<pgrx::AnyNumeric>(
             "SELECT Uniswap.sync_base_reserve($1);",
@@ -253,17 +253,17 @@ mod tests {
 
         assert_eq!(
             reserve_base,
-            Some(pgrx::AnyNumeric::from_str("442299260600729518413")?)
+            Some(pgrx::AnyNumeric::from_str("1538709118419255752482357599")?)
         );
 
         assert_eq!(
             reserve_quote,
-            Some(pgrx::AnyNumeric::from_str("1498773615814385624748265981")?)
+            Some(pgrx::AnyNumeric::from_str("430819869816330615202")?)
         );
 
         assert_eq!(
             price,
-            Some(pgrx::AnyNumeric::from_str("0.000000470133292265")?)
+            Some(pgrx::AnyNumeric::from_str("0.000000446046391448")?)
         );
 
         Ok(())
