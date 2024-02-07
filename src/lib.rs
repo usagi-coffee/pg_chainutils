@@ -15,6 +15,7 @@ mod ERC721;
 
 mod sushiswap;
 mod uniswap;
+mod velodrome;
 
 #[cfg(test)]
 pub mod pg_test {

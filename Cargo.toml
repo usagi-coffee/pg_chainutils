@@ -1,6 +1,6 @@
 [package]
 name = "pg_chainutils"
-version = "0.0.10"
+version = "0.0.11"
 edition = "2021"
 
 [lib]
@@ -12,7 +12,7 @@ pg15 = ["pgrx/pg15", "pgrx-tests/pg15"]
 pg_test = []
 
 [dependencies]
-pgrx = "=0.9.6"
+pgrx = "=0.11.3"
 ethers = "2.0"
 anyhow = "1.0.71"
 serde = "1.0.163"
@@ -20,7 +20,7 @@ num = "0.4.0"
 bigdecimal = "0.3.1"
 
 [dev-dependencies]
-pgrx-tests = "=0.9.6"
+pgrx-tests = "=0.11.3"
 
 [profile.dev]
 panic = "unwind"
