@@ -15,7 +15,6 @@ pub struct Transfer {
 mod ERC721 {
     use ethers::types::{H160, H256, U256};
 
-    use ethers::utils::hex;
     use pgrx::prelude::*;
 
     #[pg_extern(name = "transfer_from", immutable, parallel_safe)]
@@ -33,8 +32,10 @@ mod ERC721 {
     }
 
     #[pg_extern(immutable, parallel_safe)]
-    fn transfer_token(data: &str) -> pgrx::AnyNumeric {
-        pgrx::AnyNumeric::from(U256::from_big_endian(&hex::decode(data).unwrap()[64..96]).as_u128())
+    fn transfer_token(topics: Array<&str>) -> pgrx::AnyNumeric {
+        let t3 = topics.get(3).unwrap();
+
+        pgrx::AnyNumeric::from(t3.unwrap().parse::<U256>().unwrap().as_u128())
     }
 }
 
