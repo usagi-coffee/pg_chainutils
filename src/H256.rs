@@ -8,6 +8,21 @@ mod H256 {
 
     use pgrx::prelude::*;
 
+    #[pg_extern(name = "parse", immutable, parallel_safe)]
+    fn parse_h256(string: &str) -> String {
+        format!("{:#x}", string.parse::<H256>().unwrap())
+    }
+
+    #[pg_extern(immutable, parallel_safe)]
+    fn parse_slice(string: &str, start: i64, end: i64) -> String {
+        format!(
+            "{:#x}",
+            string[start as usize..end as usize]
+                .parse::<H256>()
+                .unwrap()
+        )
+    }
+
     #[pg_extern(immutable, parallel_safe)]
     fn from_event(event: &str) -> String {
         format!("{:#x}", H256::from(keccak256(event.as_bytes())))
@@ -20,6 +35,50 @@ mod tests {
     use pgrx::prelude::*;
 
     use anyhow::Result;
+
+    #[cfg(not(feature = "no-schema-generation"))]
+    #[pg_test]
+    fn h256_parse() -> Result<()> {
+        let data = "000000000000000000000000a16e02e87b7454126e5e10d957a927a7f5b5d2be";
+
+        let decoded = Spi::get_one_with_args::<&str>(
+            "SELECT H256.parse($1);",
+            vec![(
+                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
+                data.to_string().into_datum(),
+            )],
+        )
+        .unwrap();
+
+        assert_eq!(
+            decoded,
+            Some("0x000000000000000000000000a16e02e87b7454126e5e10d957a927a7f5b5d2be")
+        );
+
+        Ok(())
+    }
+
+    #[cfg(not(feature = "no-schema-generation"))]
+    #[pg_test]
+    fn h256_parse_slice() -> Result<()> {
+        let data = "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000a16e02e87b7454126e5e10d957a927a7f5b5d2be";
+
+        let decoded = Spi::get_one_with_args::<&str>(
+            "SELECT H256.parse_slice($1, 128, 192);",
+            vec![(
+                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
+                data.to_string().into_datum(),
+            )],
+        )
+        .unwrap();
+
+        assert_eq!(
+            decoded,
+            Some("0x000000000000000000000000a16e02e87b7454126e5e10d957a927a7f5b5d2be")
+        );
+
+        Ok(())
+    }
 
     #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
