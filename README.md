@@ -1,35 +1,11 @@
 # pg_chainutils: blockchain utilities for PostgreSQL
 
-> Proof of Concept - expect bugs and breaking changes
+pg_chainutils adds some simple utilities that help parse/transform/interact with blockchain datatypes and standards directly inside PostgreSQL. 
 
-pg_chainutils adds some simple utilities that help parse/transform/interact with blockchain datatypes and standards directly inside PostgreSQL. Contributions welcome!
-
-Check out [pg_chainsync](https://github.com/usagi-coffee/pg_chainsync) extension to fetch blocks and events inside your database.
+Contributions and suggestions welcome!
 
 This extension is created using [pgrx](https://github.com/tcdi/pgrx)
-
-## Utilities
-
-- [X] H256 -> H160
-- [X] Event -> H256
-- [ ] ...
-
-### ERC20
-
-- [X] Transfer
-- [ ] Approval
-- [ ] ...
-
-### ERC721
-
-- [X] Transfer
-- [ ] ...
-
-### AMM (Sushiswap / Uniswap)
-
-- [X] Swap
-- [X] Sync
-- [ ] ...
+Check out [pg_chainsync](https://github.com/usagi-coffee/pg_chainsync) extension to fetch blocks and events inside your database.
 
 ## Usage
 
@@ -37,11 +13,22 @@ This extension is created using [pgrx](https://github.com/tcdi/pgrx)
 CREATE EXTENSION pg_chainutils;
 ```
 
+### H256 / H160
+
 ```sql
+SELECT H256.parse("0000000000000000000000001111111111111111111111111111111111111111");
+-- 0x0000000000000000000000001111111111111111111111111111111111111111
+
+SELECT H256.parse_slice(
+    "0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000a16e02e87b7454126e5e10d957a927a7f5b5d2be",
+    64, 128
+);
+-- 0x000000000000000000000000a16e02e87b7454126e5e10d957a927a7f5b5d2be
+
 SELECT H160.from_H256("0x0000000000000000000000001111111111111111111111111111111111111111")
 -- 0x1111111111111111111111111111111111111111
 
-SELECT H256.from_event("Sync(uint112,uint112)");
+SELECT H256.from_event("Sync(uint112,uint112)"); -- keccak256 of event signature
 -- 0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1
 ```
 
