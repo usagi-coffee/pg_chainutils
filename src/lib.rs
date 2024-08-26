@@ -13,6 +13,7 @@ mod ERC20;
 #[allow(non_snake_case)]
 mod ERC721;
 
+mod cowswap;
 mod sushiswap;
 mod uniswap;
 mod velodrome;
