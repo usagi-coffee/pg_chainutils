@@ -78,11 +78,11 @@ mod tests {
     }
 
     #[pg_test]
-    fn h256_sync_decode() -> Result<()> {
+    fn h256_keccak256() -> Result<()> {
         let event = "Sync(uint112,uint112)";
 
         let decoded = Spi::get_one_with_args::<&str>(
-            "SELECT H256.from_event($1);",
+            "SELECT H256.keccak256($1);",
             vec![(
                 PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
                 event.to_string().into_datum(),
