@@ -29,21 +29,11 @@ mod Velodrome {
     use std::error::Error;
     use std::str::FromStr;
 
-    use ethers::utils::hex;
+    use alloy::core::hex;
 
     use super::decode_swap;
     use super::decode_sync;
     use super::sync_price;
-
-    #[pg_extern(name = "swap_abi", immutable, parallel_safe)]
-    fn velo_swap_abi() -> &'static str {
-        "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822"
-    }
-
-    #[pg_extern(name = "sync_abi", immutable, parallel_safe)]
-    fn velo_sync_abi() -> &'static str {
-        "0xcf2aa50876cdfbb541206f89af0ee78d44a2abf8d328e37fa4917f982149848a"
-    }
 
     #[pg_extern(name = "swap_type", immutable, parallel_safe)]
     fn velo_swap_type(data: &str) -> i32 {
@@ -163,7 +153,6 @@ mod tests {
 
     use super::SwapAction;
 
-    #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn velo_test_swap() -> Result<()> {
         let data = "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000152d02c7e14af680000000000000000000000000000000000000000000000000000001af6004a0664afd0000000000000000000000000000000000000000000000000000000000000000";
@@ -209,7 +198,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn velo_test_sync() -> Result<()> {
         let data = "0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000307901d1d2a2de57b000000000000000000000000000000000000000000260a3ac38e256b76eb9289";

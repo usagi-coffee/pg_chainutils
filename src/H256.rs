@@ -3,14 +3,13 @@ use pgrx::prelude::*;
 #[pg_schema]
 #[allow(non_snake_case)]
 mod H256 {
-    use ethers::core::utils::keccak256;
-    use ethers::types::H256;
+    use alloy::core::primitives::{keccak256, B256};
 
     use pgrx::prelude::*;
 
     #[pg_extern(name = "parse", immutable, parallel_safe)]
     fn parse_h256(string: &str) -> String {
-        format!("{:#x}", string.parse::<H256>().unwrap())
+        format!("{:#x}", string.parse::<B256>().unwrap())
     }
 
     #[pg_extern(immutable, parallel_safe)]
@@ -18,14 +17,14 @@ mod H256 {
         format!(
             "{:#x}",
             string[start as usize..end as usize]
-                .parse::<H256>()
+                .parse::<B256>()
                 .unwrap()
         )
     }
 
     #[pg_extern(immutable, parallel_safe)]
     fn from_event(event: &str) -> String {
-        format!("{:#x}", H256::from(keccak256(event.as_bytes())))
+        format!("{:#x}", keccak256(event.as_bytes()))
     }
 }
 
@@ -36,7 +35,6 @@ mod tests {
 
     use anyhow::Result;
 
-    #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn h256_parse() -> Result<()> {
         let data = "000000000000000000000000a16e02e87b7454126e5e10d957a927a7f5b5d2be";
@@ -58,7 +56,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn h256_parse_slice() -> Result<()> {
         let data = "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000a16e02e87b7454126e5e10d957a927a7f5b5d2be";
@@ -80,7 +77,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn h256_sync_decode() -> Result<()> {
         let event = "Sync(uint112,uint112)";

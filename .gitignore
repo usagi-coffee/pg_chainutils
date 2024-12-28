@@ -5,3 +5,5 @@
 **/*.rs.bk
 Cargo.lock
 install.sh
+doge2.install.sh
+*.install.sh*

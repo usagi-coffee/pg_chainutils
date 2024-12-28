@@ -3,22 +3,18 @@ use pgrx::prelude::*;
 #[pg_schema]
 #[allow(non_snake_case)]
 mod H160 {
-    use ethers::types::{H160, H256};
+    use alloy::primitives::{Address, FixedBytes};
     use pgrx::prelude::*;
 
     #[pg_extern(name = "parse", immutable, parallel_safe)]
     fn parse_h160(h160: &str) -> String {
-        format!("{:#x}", h160.parse::<H160>().unwrap())
-    }
-
-    #[pg_extern(immutable, parallel_safe)]
-    fn from_abi(h256: &str) -> String {
-        format!("{:#x}", H160::from(h256.parse::<H256>().unwrap()))
+        format!("{:#x}", h160.parse::<Address>().unwrap())
     }
 
     #[pg_extern(immutable, parallel_safe)]
     fn from_h256(h256: &str) -> String {
-        format!("{:#x}", H160::from(h256.parse::<H256>().unwrap()))
+        let h256: FixedBytes<32> = h256.parse().expect("Failed to parse H256");
+        format!("{:#x}", Address::from_word(h256))
     }
 }
 
@@ -29,7 +25,6 @@ mod tests {
 
     use anyhow::Result;
 
-    #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn h160_parse() -> Result<()> {
         let data = "1111111111111111111111111111111111111111";
@@ -48,7 +43,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn h160_from_h256() -> Result<()> {
         let address = "0x0000000000000000000000001111111111111111111111111111111111111111";

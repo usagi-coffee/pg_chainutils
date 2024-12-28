@@ -4,24 +4,27 @@ version = "0.0.13"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "lib"]
+
+[[bin]]
+name = "pgrx_embed_pg_chainutils"
+path = "./src/bin/pgrx_embed.rs"
 
 [features]
-default = ["pg16"]
-pg15 = ["pgrx/pg15", "pgrx-tests/pg15"]
-pg16 = ["pgrx/pg16", "pgrx-tests/pg16"]
+default = ["pg17"]
+pg17 = ["pgrx/pg17", "pgrx-tests/pg17"]
 pg_test = []
 
 [dependencies]
-pgrx = "=0.11.3"
-ethers = "2.0"
+pgrx = "0.12.9"
+alloy = { version = "0.8", features = ["full"] }
 anyhow = "1.0.71"
-serde = "1.0.163"
+serde = { version = "1" }
 num = "0.4.0"
 bigdecimal = "0.3.1"
 
 [dev-dependencies]
-pgrx-tests = "=0.11.3"
+pgrx-tests = "0.12.9"
 
 [profile.dev]
 panic = "unwind"

@@ -1,4 +1,3 @@
-use pgrx::prelude::*;
 pgrx::pg_module_magic!();
 
 #[allow(non_snake_case)]

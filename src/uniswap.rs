@@ -15,6 +15,7 @@ pub enum SwapAction {
     SELL,
 }
 
+#[allow(dead_code)]
 pub struct Swap {
     pub action: SwapAction,
     pub base_amount: BigInt,
@@ -34,17 +35,12 @@ mod Uniswap {
     use std::error::Error;
     use std::str::FromStr;
 
-    use ethers::utils::hex;
+    use alloy::core::hex;
     use num::{BigInt, Signed};
 
     use super::decode_swap;
     use super::decode_sync;
     use super::sync_price;
-
-    #[pg_extern(name = "swap_abi", immutable, parallel_safe)]
-    fn uni_swap_abi() -> &'static str {
-        "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67"
-    }
 
     #[pg_extern(name = "swap_type", immutable, parallel_safe)]
     fn uni_swap_type(data: &str) -> i32 {
@@ -173,7 +169,6 @@ mod tests {
 
     use super::SwapAction;
 
-    #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn uni_test_swap() -> Result<()> {
         let data = "000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000069e3a94cbdc95782d980fffffffffffffffffffffffffffffffffffffffffffffffffca2be462fef64520000000000000000000000000000000000000000002dd9e533e8a406c1663add00000000000000000000000000000000000000000000ac695d7b1db89e7cd0ddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc865";
@@ -219,7 +214,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn uni_test_sync() -> Result<()> {
         let data = "0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000058418f10da628473affffffffffffffffffffffffffffffffffffffffffffffffffffd722236f32722e0000000000000000000000000000000000000000002bc4f31f2528f3970405f300000000000000000000000000000000000000000000ac695d7b1db89e7cd0ddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc4c4";
@@ -269,7 +263,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn uni_test_sync_diff_decimals() -> Result<()> {
         let data = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffa99a52af25fb226800000000000000000000000000000000000000000000000000000002830ac9a200000000000000000000000000000000000000000002ba3e80dffbea705b06590000000000000000000000000000000000000000000000008220d5a03bc02470fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffcebea";

@@ -29,21 +29,11 @@ mod Sushiswap {
     use std::error::Error;
     use std::str::FromStr;
 
-    use ethers::utils::hex;
+    use alloy::core::hex;
 
     use super::decode_swap;
     use super::decode_sync;
     use super::sync_price;
-
-    #[pg_extern(name = "swap_abi", immutable, parallel_safe)]
-    fn sushi_swap_abi() -> &'static str {
-        "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822"
-    }
-
-    #[pg_extern(name = "sync_abi", immutable, parallel_safe)]
-    fn sushi_sync_abi() -> &'static str {
-        "0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1"
-    }
 
     #[pg_extern(name = "swap_type", immutable, parallel_safe)]
     fn sushi_swap_type(data: &str) -> i32 {
@@ -163,7 +153,6 @@ mod tests {
 
     use super::SwapAction;
 
-    #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn sushi_test_swap() -> Result<()> {
         let data = "00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000aa87bee5380000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006c6363e4d3aa68afbe";
@@ -209,7 +198,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(not(feature = "no-schema-generation"))]
     #[pg_test]
     fn sushi_test_sync() -> Result<()> {
         let data = "000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000030a017596c201728ecfb31300000000000000000000000000000000000000000000009a2946f7338c7c7108";
