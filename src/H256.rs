@@ -22,8 +22,8 @@ mod H256 {
         )
     }
 
-    #[pg_extern(immutable, parallel_safe)]
-    fn from_event(event: &str) -> String {
+    #[pg_extern(name = "keccak256", immutable, parallel_safe)]
+    fn to_keccak256(event: &str) -> String {
         format!("{:#x}", keccak256(event.as_bytes()))
     }
 }

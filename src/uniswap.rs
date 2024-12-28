@@ -118,7 +118,6 @@ fn decode_swap(data: &[u8]) -> Result<Swap> {
     })
 }
 
-#[allow(dead_code)]
 fn decode_sync(bytes: &[u8]) -> Result<Sync> {
     let x96: Ratio<BigInt> = BigRational::from(BigInt::from(10).pow(29));
 
