@@ -3,28 +3,28 @@ use pgrx::prelude::*;
 #[pg_schema]
 #[allow(non_snake_case)]
 mod H256 {
+    use alloy::core::hex;
     use alloy::core::primitives::{keccak256, B256};
 
     use pgrx::prelude::*;
 
     #[pg_extern(name = "parse", immutable, parallel_safe)]
     fn parse_h256(string: &str) -> String {
-        format!("{:#x}", string.parse::<B256>().unwrap())
+        hex::encode(string.parse::<B256>().unwrap())
     }
 
     #[pg_extern(immutable, parallel_safe)]
     fn parse_slice(string: &str, start: i64, end: i64) -> String {
-        format!(
-            "{:#x}",
+        hex::encode(
             string[start as usize..end as usize]
                 .parse::<B256>()
-                .unwrap()
+                .unwrap(),
         )
     }
 
     #[pg_extern(name = "keccak256", immutable, parallel_safe)]
-    fn to_keccak256(event: &str) -> String {
-        format!("{:#x}", keccak256(event.as_bytes()))
+    fn to_keccak256(value: &str) -> String {
+        hex::encode(keccak256(value.as_bytes()))
     }
 }
 
@@ -50,7 +50,7 @@ mod tests {
 
         assert_eq!(
             decoded,
-            Some("0x000000000000000000000000a16e02e87b7454126e5e10d957a927a7f5b5d2be")
+            Some("000000000000000000000000a16e02e87b7454126e5e10d957a927a7f5b5d2be")
         );
 
         Ok(())
@@ -71,7 +71,7 @@ mod tests {
 
         assert_eq!(
             decoded,
-            Some("0x000000000000000000000000a16e02e87b7454126e5e10d957a927a7f5b5d2be")
+            Some("000000000000000000000000a16e02e87b7454126e5e10d957a927a7f5b5d2be")
         );
 
         Ok(())
@@ -92,7 +92,7 @@ mod tests {
 
         assert_eq!(
             decoded,
-            Some("0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1")
+            Some("1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1")
         );
 
         Ok(())

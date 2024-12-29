@@ -27,20 +27,16 @@ mod Cowswap {
 
     #[pg_extern(name = "trade_sell_token", immutable, parallel_safe)]
     fn cow_trade_sell_token(data: &str) -> String {
-        format!(
-            "{:#x}",
+        hex::encode(
             decode_trade(&hex::decode(data).unwrap())
                 .unwrap()
-                .sell_token
+                .sell_token,
         )
     }
 
     #[pg_extern(name = "trade_buy_token", immutable, parallel_safe)]
     fn cow_trade_buy_token(data: &str) -> String {
-        format!(
-            "{:#x}",
-            decode_trade(&hex::decode(data).unwrap()).unwrap().buy_token
-        )
+        hex::encode(decode_trade(&hex::decode(data).unwrap()).unwrap().buy_token)
     }
 
     #[pg_extern(name = "trade_sell_amount", immutable, parallel_safe)]
@@ -66,7 +62,6 @@ mod Cowswap {
     }
 }
 
-#[allow(dead_code)]
 fn decode_trade(data: &[u8]) -> Result<Trade> {
     let sell_token = Address::from_slice(&data[76..96]);
     let buy_token = Address::from_slice(&data[108..128]);
@@ -115,12 +110,12 @@ mod tests {
 
         assert_eq!(
             sell_token,
-            Some(String::from("0x1111111111111111111111111111111111111111"))
+            Some(String::from("1111111111111111111111111111111111111111"))
         );
 
         assert_eq!(
             buy_token,
-            Some(String::from("0x2222222222222222222222222222222222222222"))
+            Some(String::from("2222222222222222222222222222222222222222"))
         );
 
         let sell_amount = Spi::get_one_with_args::<pgrx::AnyNumeric>(

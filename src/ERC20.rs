@@ -17,7 +17,7 @@ mod ERC20 {
         let t1 = topics.get(1).expect("Invalid topics");
 
         let h256: FixedBytes<32> = t1.unwrap().parse().expect("Failed to parse H256");
-        format!("{:#x}", Address::from_word(h256))
+        hex::encode(Address::from_word(h256))
     }
 
     #[pg_extern(name = "transfer_to", immutable, parallel_safe)]
@@ -25,7 +25,7 @@ mod ERC20 {
         let t2 = topics.get(2).expect("Invalid topics");
 
         let h256: FixedBytes<32> = t2.unwrap().parse().expect("Failed to parse H256");
-        format!("{:#x}", Address::from_word(h256))
+        hex::encode(Address::from_word(h256))
     }
 
     #[pg_extern(immutable, parallel_safe)]
