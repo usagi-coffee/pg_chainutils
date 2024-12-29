@@ -6,8 +6,8 @@ use num::{bigint::Sign, BigInt};
 use anyhow::Result;
 
 pub enum SwapAction {
-    BUY,
-    SELL,
+    SELL = -1,
+    BUY = 1,
 }
 
 pub struct Swap {

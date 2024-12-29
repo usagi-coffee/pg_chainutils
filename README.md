@@ -59,7 +59,7 @@ SELECT ERC721.transfer_token('00000000000000000000000000000000000000000000000000
 -- Takes non-hex encoded data and returns swap type
 SELECT Sushiswap.swap_type('00..');
 SELECT Uniswap.swap_type('00..');
--- 0 (BUY) or 1 (SELL)
+-- 1 (BUY) or -1 (SELL)
 
 -- Pair: BASE / QUOTE
 -- Takes non-hex encoded data and returns swap amount
