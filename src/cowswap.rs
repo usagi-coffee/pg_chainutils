@@ -80,6 +80,7 @@ fn decode_trade(data: &[u8]) -> Result<Trade> {
 #[cfg(any(test, feature = "pg_test"))]
 #[pg_schema]
 mod tests {
+    use pgrx::datum::DatumWithOid;
     use pgrx::prelude::*;
 
     use std::str::FromStr;
@@ -92,19 +93,13 @@ mod tests {
 
         let sell_token = Spi::get_one_with_args::<String>(
             "SELECT Cowswap.trade_sell_token($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         )
         .unwrap();
 
         let buy_token = Spi::get_one_with_args::<String>(
             "SELECT Cowswap.trade_buy_token($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         )
         .unwrap();
 
@@ -120,19 +115,13 @@ mod tests {
 
         let sell_amount = Spi::get_one_with_args::<pgrx::AnyNumeric>(
             "SELECT Cowswap.trade_sell_amount($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         )
         .unwrap();
 
         let buy_amount = Spi::get_one_with_args::<pgrx::AnyNumeric>(
             "SELECT Cowswap.trade_buy_amount($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         )
         .unwrap();
 

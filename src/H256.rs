@@ -31,6 +31,7 @@ mod H256 {
 #[cfg(any(test, feature = "pg_test"))]
 #[pg_schema]
 mod tests {
+    use pgrx::datum::DatumWithOid;
     use pgrx::prelude::*;
 
     use anyhow::Result;
@@ -41,10 +42,7 @@ mod tests {
 
         let decoded = Spi::get_one_with_args::<&str>(
             "SELECT H256.parse($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         )
         .unwrap();
 
@@ -62,10 +60,7 @@ mod tests {
 
         let decoded = Spi::get_one_with_args::<&str>(
             "SELECT H256.parse_slice($1, 128, 192);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         )
         .unwrap();
 
@@ -83,10 +78,7 @@ mod tests {
 
         let decoded = Spi::get_one_with_args::<&str>(
             "SELECT H256.keccak256($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                event.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(event)],
         )
         .unwrap();
 

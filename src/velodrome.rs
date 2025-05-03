@@ -145,6 +145,7 @@ fn sync_price(bytes: &[u8], base_decimals: i64, quote_decimals: i64) -> BigDecim
 #[cfg(any(test, feature = "pg_test"))]
 #[pg_schema]
 mod tests {
+    use pgrx::datum::DatumWithOid;
     use pgrx::prelude::*;
 
     use std::str::FromStr;
@@ -159,29 +160,20 @@ mod tests {
 
         let action = Spi::get_one_with_args::<i32>(
             "SELECT Velodrome.swap_type($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         );
 
         assert_eq!(action, Ok(Some(SwapAction::BUY as i32)));
 
         let base_amount = Spi::get_one_with_args::<pgrx::AnyNumeric>(
             "SELECT Velodrome.swap_base_amount($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         )
         .unwrap();
 
         let quote_amount = Spi::get_one_with_args::<pgrx::AnyNumeric>(
             "SELECT Velodrome.swap_quote_amount($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         )
         .unwrap();
 
@@ -204,19 +196,13 @@ mod tests {
 
         let reserve_base = Spi::get_one_with_args::<pgrx::AnyNumeric>(
             "SELECT Velodrome.sync_base_reserve($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         )
         .unwrap();
 
         let reserve_quote = Spi::get_one_with_args::<pgrx::AnyNumeric>(
             "SELECT Velodrome.sync_quote_reserve($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         )
         .unwrap();
 
@@ -232,10 +218,7 @@ mod tests {
 
         let price = Spi::get_one_with_args::<pgrx::AnyNumeric>(
             "SELECT Velodrome.sync_price($1, 18, 18);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         )
         .unwrap();
 

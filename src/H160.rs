@@ -23,6 +23,7 @@ mod H160 {
 #[cfg(any(test, feature = "pg_test"))]
 #[pg_schema]
 mod tests {
+    use pgrx::datum::DatumWithOid;
     use pgrx::prelude::*;
 
     use anyhow::Result;
@@ -33,10 +34,7 @@ mod tests {
 
         let decoded = Spi::get_one_with_args::<&str>(
             "SELECT H160.parse($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                data.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(data)],
         )
         .unwrap();
 
@@ -51,10 +49,7 @@ mod tests {
 
         let decoded = Spi::get_one_with_args::<&str>(
             "SELECT H160.from_h256($1);",
-            vec![(
-                PgOid::BuiltIn(PgBuiltInOids::TEXTOID),
-                address.to_string().into_datum(),
-            )],
+            &vec![DatumWithOid::from(address)],
         )
         .unwrap();
 
