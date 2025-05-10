@@ -7,6 +7,9 @@ mod H256;
 mod H160;
 
 #[allow(non_snake_case)]
+mod U256;
+
+#[allow(non_snake_case)]
 mod ERC20;
 
 #[allow(non_snake_case)]
