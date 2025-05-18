@@ -4,13 +4,15 @@ mod erc20;
 mod erc721;
 mod h160;
 mod h256;
-mod spl;
 mod u256;
 
 mod cowswap;
 mod sushiswap;
 mod uniswap;
 mod velodrome;
+
+mod ed25519;
+mod spl;
 
 #[cfg(test)]
 pub mod pg_test {
