@@ -16,8 +16,8 @@ pg17 = ["pgrx/pg17", "pgrx-tests/pg17"]
 pg_test = []
 
 [dependencies]
-pgrx = "0.14.1"
-alloy = { version = "0.8", features = ["full"] }
+pgrx = "0.14.3"
+alloy = { version = "1", features = ["full"] }
 anyhow = "1.0.71"
 serde = { version = "1" }
 num = "0.4.0"
