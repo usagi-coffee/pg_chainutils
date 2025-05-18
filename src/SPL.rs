@@ -4,6 +4,8 @@ use pgrx::prelude::*;
 #[allow(non_snake_case)]
 mod SPL {
     use pgrx::prelude::*;
+    use solana_sdk::{pubkey, pubkey::Pubkey};
+    use std::str::FromStr;
 
     #[pg_extern(name = "transfer_source", immutable, parallel_safe)]
     fn spl_transfer_source(accounts: Array<&str>) -> String {
@@ -34,6 +36,25 @@ mod SPL {
         )
         .expect("can convert u64 to AnyNumeric")
     }
+
+    const PROGRAM_ID: Pubkey = pubkey!("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+    const TOKEN_PROGRAM_ID: Pubkey = pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+
+    #[pg_extern(name = "token_account", immutable, parallel_safe)]
+    fn spl_token_account(mint: String, address: String) -> Result<String, anyhow::Error> {
+        let mint = Pubkey::from_str(mint.as_str())?;
+        let address = Pubkey::from_str(address.as_str())?;
+
+        let seeds = [
+            &address.to_bytes()[..],
+            &TOKEN_PROGRAM_ID.to_bytes()[..],
+            &mint.to_bytes()[..],
+        ];
+
+        Ok(Pubkey::find_program_address(&seeds, &PROGRAM_ID)
+            .0
+            .to_string())
+    }
 }
 
 #[cfg(any(test, feature = "pg_test"))]
@@ -57,6 +78,25 @@ mod tests {
         .unwrap();
 
         assert_eq!(decoded, Some(pgrx::AnyNumeric::from_str("10321")?));
+
+        Ok(())
+    }
+
+    #[pg_test]
+    fn spl_account_derive_test() -> Result<()> {
+        let mint = "CY2E69dSG9vBsMoaXDvYmMDSMEP4SZtRY1rqVQ9tkNDu";
+        let address = "D4RU5YKeMuHc25rrgmbggwr95DaogDe8d8hFRD2CNQXb";
+
+        let decoded = Spi::get_one_with_args::<String>(
+            "SELECT SPL.token_account($1, $2);",
+            &vec![DatumWithOid::from(mint), DatumWithOid::from(address)],
+        )
+        .unwrap();
+
+        assert_eq!(
+            decoded,
+            Some(String::from("45TCoQ8FSp4USRsGkuDKVQmZs878wgPAmhKYJBGWnEYd"))
+        );
 
         Ok(())
     }
