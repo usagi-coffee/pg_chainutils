@@ -1,22 +1,11 @@
 pgrx::pg_module_magic!();
 
-#[allow(non_snake_case)]
-mod H256;
-
-#[allow(non_snake_case)]
-mod H160;
-
-#[allow(non_snake_case)]
-mod U256;
-
-#[allow(non_snake_case)]
-mod ERC20;
-
-#[allow(non_snake_case)]
-mod ERC721;
-
-#[allow(non_snake_case)]
-mod SPL;
+mod erc20;
+mod erc721;
+mod h160;
+mod h256;
+mod spl;
+mod u256;
 
 mod cowswap;
 mod sushiswap;
