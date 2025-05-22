@@ -11,6 +11,7 @@ mod sushiswap;
 mod uniswap;
 mod velodrome;
 
+mod base58;
 mod ed25519;
 mod spl;
 
