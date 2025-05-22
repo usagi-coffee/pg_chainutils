@@ -13,8 +13,7 @@ mod Base58 {
     }
 
     #[pg_extern(name = "encode", immutable, parallel_safe)]
-    fn encode(bytes: Vec<i32>) -> String {
-        let bytes: Vec<u8> = bytes.iter().map(|&i| i as u8).collect();
+    fn encode(bytes: Vec<u8>) -> String {
         bs58::encode(&bytes).into_string()
     }
 }
@@ -42,7 +41,7 @@ mod tests {
 
     #[pg_test]
     fn encode_test() -> Result<()> {
-        let data = vec![0x5d, 0xf6, 0xe0, 0xe2];
+        let data: Vec<u8> = vec![0x5d, 0xf6, 0xe0, 0xe2];
 
         let encoded = Spi::get_one_with_args::<String>(
             "SELECT base58.encode($1);",
